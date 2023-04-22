@@ -12,11 +12,11 @@ function App() {
   };
 
   return (
-    <div>
+    <React.Fragment>
       <AddUser getusers={usersListReceiver}/> 
       <UserList users={usersList} />
-    </div>
+    </React.Fragment>
   );
-}
+} 
 
 export default App;
