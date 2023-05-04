@@ -1,10 +1,11 @@
 import Modal from "../UI/Modal";
 import classes from "./Cart.module.css";
-import { useContext } from "react";
+import { Fragment, useContext } from "react";
 import CartContext from "../store/cart-context";
 import CartItem from "./CartItem";
 import Checkout from "./Checkout";
 import { useState } from "react";
+
 
 export default function Cart(props) {
   const cartCtx = useContext(CartContext);
@@ -14,6 +15,8 @@ export default function Cart(props) {
   const hasItems = cartCtx.items.length > 0;
 
   const [orderDetails , setOrderDetails] = useState(false);
+  const [isSubmitting , setIsSubmitting] = useState(false);
+  const [didSubmit , setDidSubmit] = useState(false);
 
   const cartItemRemoveHandler = (id) => {
     cartCtx.removeItem(id);
@@ -21,7 +24,23 @@ export default function Cart(props) {
 
   const cartItemAddHandler = (item) => {
     cartCtx.addItem({...item , amount:1}); 
-  };  
+  }; 
+  
+  const onSubmitOrderHandler = async(userData) => {
+    setIsSubmitting(true);
+    
+    await fetch('https://rx-udemy-default-rtdb.firebaseio.com/orders.json', {
+      method : 'POST',
+      body :  JSON.stringify({
+        user : userData,
+        orderedItems : cartCtx.items 
+        })
+    });
+    setIsSubmitting(false);
+    setDidSubmit(true);
+    cartCtx.clearCart();
+  };
+  
 
   const cartItems = (
     <ul className={classes["cart-items"]}>
@@ -46,6 +65,26 @@ export default function Cart(props) {
         {hasItems && <button className={classes.button} onClick={onOrderHandler}>Order</button>}
       </div>
   );
+  const cartModalContent = (
+    <Fragment>
+      {cartItems}
+      <div className={classes.total}>
+        <span>Total Amount</span>
+        <span>{totalAmount}</span>
+      </div>
+      {orderDetails && <Checkout onconfirm = {onSubmitOrderHandler} close ={props.closecart}/> }
+      {!orderDetails && modalActions}  
+    </Fragment>
+  );
+
+  const isSubmittingModalContent = (
+    <p>loading</p>
+  );
+
+  const didSubmitModalContent = (
+    <p>order received</p>
+  )
+
 
   function onOrderHandler()
   {
@@ -53,13 +92,10 @@ export default function Cart(props) {
   }
   return (
     <Modal onClose={props.closecart}>
-      {cartItems}
-      <div className={classes.total}>
-        <span>Total Amount</span>
-        <span>{totalAmount}</span>
-      </div>
-      {orderDetails && <Checkout close ={props.closecart}/> }
-      {!orderDetails && modalActions}  
+      {!isSubmitting && !didSubmit && cartModalContent}
+      {isSubmitting && isSubmittingModalContent}
+      {!isSubmitting && didSubmit && didSubmitModalContent}
+      
     </Modal>
   );
 }
