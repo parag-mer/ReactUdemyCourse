@@ -1,57 +1,66 @@
-// Challenge / Exercise
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import EventDetailPage, {
+  deleteEventAction,
+} from "./components/EventDetailPage";
+import EventsPage from "./components/EventsPage";
+import EventsRoot from "./components/EventsRoot";
+import HomePage from "./components/HomePage";
+import NewEventPage, { NewEventAdder } from "./components/NewEventPage";
+import RootLayout from "./components/Root";
+import { loader } from "./components/EventsPage";
+import ErrorPage from "./components/ErrorPage";
+import { eventDetailLoader } from "./components/EventDetailPage";
+import EditEventPage, { eventEditor } from "./components/EditEventPage";
+import NewsletterPage, { newsletterAction } from "./components/Newsletter";
 
-// 1. Add five new (dummy) page components (content can be simple <h1> elements)
-//    - HomePage
-//    - EventsPage
-//    - EventDetailPage
-//    - NewEventPage
-//    - EditEventPage
-// 2. Add routing & route definitions for these five pages
-//    - / => HomePage
-//    - /events => EventsPage
-//    - /events/<some-id> => EventDetailPage
-//    - /events/new => NewEventPage
-//    - /events/<some-id>/edit => EditEventPage
-// 3. Add a root layout that adds the <MainNavigation> component above all page components
-// 4. Add properly working links to the MainNavigation
-// 5. Ensure that the links in MainNavigation receive an "active" class when active
-// 6. Output a list of dummy events to the EventsPage
-//    Every list item should include a link to the respective EventDetailPage
-// 7. Output the ID of the selected event on the EventDetailPage
-// BONUS: Add another (nested) layout route that adds the <EventNavigation> component above all /events... page components
-import {createBrowserRouter , RouterProvider} from 'react-router-dom';
-import EventDetailPage from './components/EventDetailPage';
-import EventsPage from './components/EventsPage';
-import EventsRoot from './components/EventsRoot';
-import HomePage from './components/HomePage';
-import NewEventPage from './components/NewEventPage';
-import RootLayout from './components/Root';
-  
 const router = createBrowserRouter([
-  {path : '/' , element : <RootLayout/> , children : [
-    {index : true, element : <HomePage/>},
-    {path : 'events' , element : <EventsRoot/> , children : [
-      {index : true , element : <EventsPage/> , loader : async ()=> {
-        const response = await fetch('http://localhost:8080/events');
-
-      if (!response.ok) {
-        
-      } else {
-        const resData = await response.json();
-        return resData.events;
-      }
-      }},
-      {path : ':eventId' , element : <EventDetailPage/>},
-      {path : 'new' , element : <NewEventPage/>},
-      {path : ':eventId/edit' , element : <NewEventPage/>}]}
-  ]},
-  
-])
-
- 
+  {
+    path: "/",
+    element: <RootLayout />,
+    errorElement: <ErrorPage />,
+    children: [
+      { index: true, element: <HomePage /> },
+      {
+        path: "events",
+        element: <EventsRoot />,
+        children: [
+          { index: true, 
+            element: <EventsPage />, 
+            loader: loader 
+          },
+          {
+            path: ":eventId",
+            id: "event-detail",
+            loader: eventDetailLoader,
+            children: [
+              {
+                index: true,
+                element: <EventDetailPage />,
+                action: deleteEventAction,
+              },
+              { path: "edit", 
+                element: <EditEventPage />, 
+                action: eventEditor 
+              },
+            ],
+          },
+          { path: "new", 
+            element: <NewEventPage />, 
+            action: NewEventAdder 
+          },
+        ],
+      },
+      {
+        path: 'newsletter',
+        element: <NewsletterPage/>,
+        action: newsletterAction,
+      },                              
+    ],
+  },
+]);
 
 function App() {
-  return <RouterProvider router = {router}/>;
+  return <RouterProvider router={router} />;
 }
 
 export default App;
