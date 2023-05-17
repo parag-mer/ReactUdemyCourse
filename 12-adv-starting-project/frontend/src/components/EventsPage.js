@@ -15,6 +15,7 @@ return (
     </>
   );
 }
+export default EventsPage;
 
 export async function loader()
 {
@@ -35,4 +36,3 @@ export async function loader()
       }
 }
 
-export default EventsPage;
